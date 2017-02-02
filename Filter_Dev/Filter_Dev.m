@@ -1,0 +1,16 @@
+clear all
+SET_OUTPUT_SAMPLE_RATE=2000; CORNER_FREQUENCY=1; FMAX=1000;
+DB_PER_DECADE=20;
+LOWEST_NOISE_F=0.05; UNIQUE_LOWF_NOISE_POINTS=2;
+USAMPR=(SET_OUTPUT_SAMPLE_RATE/2)/FMAX;
+POINTS_PER_LOOP=UNIQUE_LOWF_NOISE_POINTS*SET_OUTPUT_SAMPLE_RATE/LOWEST_NOISE_F;
+%Since the AWG has a 16 bit resolution then so shall the noise
+%white_noise=randsrc(1,SET_OUTPUT_SAMPLE_RATE*CYCLES_PER_LOOP,linspace(-1,1,(2^15)-1));
+%fvtool(white_noise)
+
+DELTA=10*log10(linspace(CORNER_FREQUENCY,(SET_OUTPUT_SAMPLE_RATE/2),(SET_OUTPUT_SAMPLE_RATE/2)-CORNER_FREQUENCY)/CORNER_FREQUENCY);
+Low_Pass_Filter=[ones(1,CORNER_FREQUENCY) power(10,((-DB_PER_DECADE*DELTA)/10)/10)];
+
+h=fftshift(ifft([Low_Pass_Filter fliplr(Low_Pass_Filter)],(SET_OUTPUT_SAMPLE_RATE)));
+a=10*log10(abs(fftshift(fft(h,(SET_OUTPUT_SAMPLE_RATE)))));
+semilogx(a((length(a)/2):1:end))
